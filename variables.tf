@@ -1,13 +1,19 @@
-variable "aws_region" {
-  default = "us-east-1"
-}
+
 
 variable "subnet_ec2_private_1a_id" {
-  description = "subnet 1 id"
+  description = "Subnet ID for EC2 instance in AZ 1a"
 }
 
 variable "subnet_ec2_private_1b_id" {
-  description = "subnet 2 id"
+  description = "Subnet ID for EC2 instance in AZ 1a"
+}
+
+variable "subnet_ec2_private_1a_cidr" {
+  description = "cidr block for first private subnet"
+}
+
+variable "subnet_ec2_private_1b_cidr" {
+  description = "cidr block for second private subnet"
 }
 
 variable "subnet_lb_public_1a_id" {
@@ -22,6 +28,11 @@ variable "vpc_id" {
     description = "vpc id"
 }
 
+
+variable "aws_region" {
+  default = "us-east-1"
+}
+
 variable "instance_type" {
   description = "EC2 instance type"
   default = "t2.micro"
@@ -33,14 +44,6 @@ variable "instance_1_name" {
 
 variable "instance_2_name" {
   default = "odp-ra-instance-2"
-}
-
-variable "subnet_ec2_private_1a_cidr" {
-  description = "cidr block for first private subnet"
-}
-
-variable "subnet_ec2_private_1b_cidr" {
-  description = "cidr block for second private subnet"
 }
 
 variable "vpc_cidr" {

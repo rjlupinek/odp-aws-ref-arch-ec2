@@ -69,63 +69,6 @@ resource "aws_security_group" "jump_host_sg" {
   }
 }
 
-
-resource "aws_instance" "jump_server" {
-  ami           = "${data.aws_ami.ec2-ami-jump.id}" #"${var.jump_server_ami}"
-  associate_public_ip_address = "true"
-  instance_type = "${var.instance_type}"
-  subnet_id = "${var.jump_server_subnet_id}"
-  vpc_security_group_ids = ["${aws_security_group.jump_host_sg.id}"]
-  key_name = "${var.aws_key_name}"
-
-  tags = {
-    Name = "${var.jump_server_name}"
-  }
-}
-
-
-resource "aws_instance" "instance_1" {
-  ami           = "${data.aws_ami.ec2-ami-private.id}"
-  instance_type = "${var.instance_type}"
-  subnet_id = "${var.instance_subnet_1_id}"
-  vpc_security_group_ids = ["${aws_security_group.web_server_sg.id}"]
-  key_name = "${var.aws_key_name}"
-
-  tags = {
-    Name = "${var.instance_1_name}"
-  }
-}
-
-resource "aws_instance" "instance_2" {
-  ami           = "${data.aws_ami.ec2-ami-private.id}"
-  instance_type = "${var.instance_type}"
-  subnet_id = "${var.instance_subnet_2_id}"
-  vpc_security_group_ids = ["${aws_security_group.web_server_sg.id}"]
-  key_name = "${var.aws_key_name}"
-
-  tags = {
-    Name = "${var.instance_2_name}"
-  }
-}
-
-resource "aws_lb" "alb" {
-  name               = "odp-ra-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = ["${aws_security_group.lb_sg.id}"]
-  subnets            = ["${var.lb_subnet_1_id}", "${var.lb_subnet_2_id}"] # direct to public subnets 
-
-  # access_logs {
-  #   bucket  = "${aws_s3_bucket.lb_logs.bucket}"
-  #   prefix  = "test-lb"
-  #   enabled = true
-  # }
-
-  # tags = {
-  #   Environment = "production"
-  # }
-}
-
 resource "aws_security_group" "lb_sg" {
   name = "lb_sg"
   vpc_id = "${var.vpc_id}"
@@ -140,8 +83,69 @@ resource "aws_security_group" "lb_sg" {
     from_port = 0
     to_port = 0
     protocol = "-1"
-    cidr_blocks = ["${var.instance_subnet_1_cidr}", "${var.instance_subnet_2_cidr}"]
+    cidr_blocks = ["${var.subnet_ec2_private_1a_cidr}", "${var.subnet_ec2_private_1b_cidr}"]
   }
+}
+
+resource "aws_instance" "jump_server" {
+  ami           = "${data.aws_ami.ec2-ami-jump.id}" #"${var.jump_server_ami}"
+  associate_public_ip_address = "true"
+  instance_type = "${var.instance_type}"
+  subnet_id = "${var.jump_server_subnet_id}"
+  vpc_security_group_ids = ["${aws_security_group.jump_host_sg.id}"]
+  key_name = "${var.aws_key_name}"
+
+  tags = {
+    Name = "${var.jump_server_name}"
+  }
+}
+
+#############################
+# Create instances
+resource "aws_instance" "instance_1" {
+  ami           = "${data.aws_ami.ec2-ami-private.id}"
+  instance_type = "${var.instance_type}"
+  subnet_id = "${var.subnet_ec2_private_1a_id}"
+  vpc_security_group_ids = ["${aws_security_group.web_server_sg.id}"]
+  key_name = "${var.aws_key_name}"
+
+  tags = {
+    Name = "${var.instance_1_name}"
+  }
+}
+
+resource "aws_instance" "instance_2" {
+  ami           = "${data.aws_ami.ec2-ami-private.id}"
+  instance_type = "${var.instance_type}"
+  subnet_id = "${var.subnet_ec2_private_1b_id}"
+  vpc_security_group_ids = ["${aws_security_group.web_server_sg.id}"]
+  key_name = "${var.aws_key_name}"
+
+  tags = {
+    Name = "${var.instance_2_name}"
+  }
+}
+
+
+###############################
+# Configure ALB
+
+resource "aws_lb" "alb" {
+  name               = "odp-ra-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = ["${aws_security_group.lb_sg.id}"]
+  subnets            = ["${var.subnet_lb_public_1a_id}", "${var.subnet_lb_public_1b_id}"] # direct to public subnets 
+
+  # access_logs {
+  #   bucket  = "${aws_s3_bucket.lb_logs.bucket}"
+  #   prefix  = "test-lb"
+  #   enabled = true
+  # }
+
+  # tags = {
+  #   Environment = "production"
+  # }
 }
 
 resource "aws_lb_target_group" "alb_target_group" {
@@ -150,6 +154,7 @@ resource "aws_lb_target_group" "alb_target_group" {
   protocol = "HTTP"
   vpc_id   = "${var.vpc_id}"
 }
+
 
 resource "aws_lb_target_group_attachment" "alb_attatchment_1" {
   target_group_arn = "${aws_lb_target_group.alb_target_group.arn}"

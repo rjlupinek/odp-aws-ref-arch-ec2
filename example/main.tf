@@ -1,0 +1,16 @@
+module "odp-aws-ref-arch-ec2" {
+  source = "./instances"
+  aws_region = "${var.env}"
+  subnet_ec2_private_1a_id = "${module.network.subnet_private_1.id}"
+  subnet_ec2_private_1b_id = "${module.network.subnet_private_3.id}"
+  subnet_lb_public_1a_id = "${module.network.subnet_public_1.id}"
+  subnet_lb_public_1b_id = "${module.network.subnet_public_2.id}"
+  subnet_ec2_private_1a_cidr = "${var.private_1_2_cidr}"
+  subnet_ec2_private_1b_cidr = "${var.private_2_2_cidr}"
+  vpc_id = "${module.network.aws_vpc_id}"
+  vpc_cidr = "${var.vpc_cidr}"
+  jump_server_subnet_id = "${module.network.subnet_public_1.id}"
+  jump_host_cidr_list = "${var.jump_host_cidr_list}"
+  aws_key_name = "${var.aws_key_name}"
+  lb_cidr_block_list = "${var.jump_host_cidr_list}"
+}

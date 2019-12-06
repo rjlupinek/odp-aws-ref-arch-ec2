@@ -7,13 +7,13 @@ This module creates three AWS instances:
 ## Variables 
 | Name | Description |
 |--|--|
-| instance_subnet_1_id | The subnet ID for the first private instance |
-| instance_subnet_2_id | The subnet ID for the first second instance |
-| lb_subnet_1_id | The first subnet ID to hook up to the load balancer |
-| lb_subnet_2_id | The second subnet ID to hook up to the load balancer |
+| subnet_ec2_private_1a_id | The subnet ID for the first private instance |
+| subnet_ec2_private_1b_id | The subnet ID for the first second instance |
+| subnet_lb_public_1a_id | The first subnet ID to hook up to the load balancer |
+| subnet_lb_public_1b_id | The second subnet ID to hook up to the load balancer |
 | vpc_id | The ID of the VPC |
-| instance_subnet_1_cidr | The CIDR block of the subnet with the first private instance used to configure the load balancer security group |
-| instance_subnet_2_cidr | The CIDR block of the subnet with the second private instance used to configure the load balancer security group |
+| subnet_ec2_private_1a_cidr | The CIDR block of the subnet with the first private instance used to configure the load balancer security group |
+| subnet_ec2_private_1b_cidr | The CIDR block of the subnet with the second private instance used to configure the load balancer security group |
 | vpc_cidr | The CIDR block of the VPC |
 | jump_host_cidr_list | The list of CIDR blocks to allow SSH access to the public instance |
 | jump_server_subnet_id | The subnet ID to place the public instance |
