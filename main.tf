@@ -39,14 +39,14 @@ resource "aws_security_group" "web_server_sg" {
       from_port   = 22
       to_port     = 22
       protocol    = "tcp"
-      cidr_blocks = ["${var.vpc_cidr}"]
+      cidr_blocks = [ "${aws_instance.jump_server.private_ip}/32" ]
   }
 
   ingress {
     from_port = 80
     to_port = 80
     protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [ "${aws_security_group.lb_sg.id}" ]
   }
 }
 
@@ -58,14 +58,14 @@ resource "aws_security_group" "jump_host_sg" {
       from_port   = 22
       to_port     = 22
       protocol    = "tcp"
-      cidr_blocks = "${var.jump_host_cidr_list}"
+      cidr_blocks = "10.0.0.1" ###FIX THIS!!!!
   }
 
   egress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
-    cidr_blocks = ["${var.vpc_cidr}"]
+    cidr_blocks = ["${var.subnet_private_1a_cidr}", "${var.subnet_private_1b_cidr}"]
   }
 }
 
@@ -77,16 +77,23 @@ resource "aws_security_group" "lb_sg" {
     from_port = 0
     to_port = 0
     protocol    = "-1"
-    cidr_blocks = "${var.lb_cidr_block_list}"
+    cidr_blocks = "${var.application_allowed_cidr}"
   }
   egress {
     from_port = 0
     to_port = 0
     protocol = "-1"
-    cidr_blocks = ["${var.subnet_ec2_private_1a_cidr}", "${var.subnet_ec2_private_1b_cidr}"]
+    cidr_blocks = ["${var.subnet_private_1a_cidr}", "${var.subnet_private_1b_cidr}"]
   }
 }
 
+
+
+#############################
+# Create instances
+
+
+# Jump host
 resource "aws_instance" "jump_server" {
   ami           = "${data.aws_ami.ec2-ami-jump.id}" #"${var.jump_server_ami}"
   associate_public_ip_address = "true"
@@ -100,12 +107,12 @@ resource "aws_instance" "jump_server" {
   }
 }
 
-#############################
-# Create instances
+# Application hosts
+
 resource "aws_instance" "instance_1" {
   ami           = "${data.aws_ami.ec2-ami-private.id}"
   instance_type = "${var.instance_type}"
-  subnet_id = "${var.subnet_ec2_private_1a_id}"
+  subnet_id = "${var.subnet_private_1a_id}"
   vpc_security_group_ids = ["${aws_security_group.web_server_sg.id}"]
   key_name = "${var.aws_key_name}"
 
@@ -117,7 +124,7 @@ resource "aws_instance" "instance_1" {
 resource "aws_instance" "instance_2" {
   ami           = "${data.aws_ami.ec2-ami-private.id}"
   instance_type = "${var.instance_type}"
-  subnet_id = "${var.subnet_ec2_private_1b_id}"
+  subnet_id = "${var.subnet_private_1b_id}"
   vpc_security_group_ids = ["${aws_security_group.web_server_sg.id}"]
   key_name = "${var.aws_key_name}"
 
@@ -135,7 +142,7 @@ resource "aws_lb" "alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = ["${aws_security_group.lb_sg.id}"]
-  subnets            = ["${var.subnet_lb_public_1a_id}", "${var.subnet_lb_public_1b_id}"] # direct to public subnets 
+  subnets            = ["${var.subnet_public_1a_id}", "${var.subnet_public_1b_id}"] # direct to public subnets 
 
   # access_logs {
   #   bucket  = "${aws_s3_bucket.lb_logs.bucket}"
